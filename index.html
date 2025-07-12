@@ -13,6 +13,7 @@
             --primary-color: #FFFFFF;
             --bg-color: #000000;
             --danger-color: #FF0000;
+            --pong-yellow: #FFFFBF;
         }
 
         body, html {
@@ -41,20 +42,9 @@
             box-sizing: border-box;
         }
 
-        #question-counter, #exit-button {
+        #exit-button {
             position: fixed;
             top: 20px;
-            font-size: 1.2em;
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
-            z-index: 10;
-        }
-        
-        #question-counter {
-            left: 20px;
-        }
-
-        #exit-button {
             right: 20px;
             background: none;
             border: 1px solid var(--primary-color);
@@ -64,6 +54,7 @@
             cursor: pointer;
             font-size: 1em;
             transition: all 0.3s;
+            z-index: 10;
         }
 
         #exit-button:hover {
@@ -71,7 +62,7 @@
             color: var(--bg-color);
         }
 
-        #start-button, .answer-button, #play-again-button, #pong-start-button, .consent-button {
+        #start-button, .answer-button, #play-again-button, #pong-start-button, .consent-button, #submit-text-button {
             background-color: transparent;
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
@@ -83,7 +74,7 @@
             transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.2s, opacity 0.3s;
         }
 
-        #start-button:hover, .answer-button:hover, #play-again-button:hover, #pong-start-button:hover, .consent-button:hover {
+        #start-button:hover, .answer-button:hover, #play-again-button:hover, #pong-start-button:hover, .consent-button:hover, #submit-text-button:hover {
             background-color: var(--primary-color);
             color: var(--bg-color);
             transform: scale(1.05);
@@ -123,6 +114,37 @@
 
         #answer-container.visible {
             opacity: 1;
+        }
+        
+        .interactive-square {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 10px;
+        }
+        
+        .interactive-square:hover {
+            background-color: var(--primary-color);
+        }
+        
+        #text-input-answer {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.2em;
+            text-align: center;
+            width: 60%;
+            margin-right: 10px;
+        }
+        
+        #text-input-answer:focus {
+            outline: none;
+            border-bottom-color: var(--danger-color);
         }
 
         .hidden {
@@ -247,7 +269,7 @@
             color: #aaa;
         }
         
-        #intro-screen, #consent-screen {
+        #intro-screen, #consent-screen, #lore-screen {
             position: fixed;
             top: 0;
             left: 0;
@@ -351,6 +373,10 @@
             font-size: 2em;
             margin: 20px 0;
         }
+        
+        #final-credit-container {
+            font-size: 2em;
+        }
 
         @keyframes scroll-credits {
             from { top: 100%; }
@@ -386,6 +412,10 @@
         </div>
     </div>
     
+    <div id="lore-screen" class="hidden">
+        <p id="lore-text"></p>
+    </div>
+    
     <div id="intro-screen" class="hidden">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="64px" height="64px"><path d="M12 3a9 9 0 00-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 00-9-9z"/></svg>
         <p>Wear headphones for the best experience.</p>
@@ -398,7 +428,6 @@
         </div>
 
         <div id="survey-screen" class="hidden">
-            <div id="question-counter"></div>
             <button id="exit-button">Exit Survey</button>
             <div id="game-container">
                 <div id="question-container"></div>
@@ -413,6 +442,7 @@
         
         <div id="credits-screen" class="hidden">
             <div id="credits-scroll-container"></div>
+            <div id="final-credit-container"></div>
         </div>
         
         <div id="ending-screen" class="hidden">
@@ -444,6 +474,9 @@
     <audio id="paddle-hit-left" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-single_tone_beep_ret-1752305029222.mp3" preload="auto"></audio>
     <audio id="paddle-hit-right" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-single_tone_beep_ret-1752305025302.mp3" preload="auto"></audio>
     <audio id="point-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-point_single_tone_be-1752305055395.mp3" preload="auto"></audio>
+    <audio id="window-tap-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-realistic_muffled_wi-1752353014788.mp3" preload="auto"></audio>
+    <audio id="paranoid-ambiance" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-Creepy_Distorted_Whi-1752353503768.mp3" loop preload="auto"></audio>
+    <audio id="paranoid-whisper" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-Creepy_Whispering_Al-1752353398690.mp3" preload="auto"></audio>
 
     <script>
         // --- DOM Elements ---
@@ -451,6 +484,8 @@
         const consentCheckbox = document.getElementById('consent-checkbox');
         const consentContinueButton = document.getElementById('consent-continue');
         const consentQuitButton = document.getElementById('consent-quit');
+        const loreScreen = document.getElementById('lore-screen');
+        const loreText = document.getElementById('lore-text');
         const introScreen = document.getElementById('intro-screen');
         const startButton = document.getElementById('start-button');
         const titleScreen = document.getElementById('title-screen');
@@ -462,10 +497,10 @@
         const debugMenu = document.getElementById('debug-menu');
         const jumpscareToggle = document.getElementById('jumpscare-toggle');
         const audioToggle = document.getElementById('audio-toggle');
-        const questionCounter = document.getElementById('question-counter');
         const exitButton = document.getElementById('exit-button');
         const creditsScreen = document.getElementById('credits-screen');
         const creditsScrollContainer = document.getElementById('credits-scroll-container');
+        const finalCreditContainer = document.getElementById('final-credit-container');
         const endingScreen = document.getElementById('ending-screen');
         const eyeBackground = document.getElementById('eye-background');
         const endingTitle = document.getElementById('ending-title');
@@ -484,6 +519,11 @@
         const paddleHitLeftSound = document.getElementById('paddle-hit-left');
         const paddleHitRightSound = document.getElementById('paddle-hit-right');
         const pointSound = document.getElementById('point-sound');
+        const windowTapSound = document.getElementById('window-tap-sound');
+        const paranoidAmbiance = document.getElementById('paranoid-ambiance');
+        const paranoidWhisper = document.getElementById('paranoid-whisper');
+        paranoidAmbiance.volume = 0.15;
+        windowTapSound.volume = 1.0;
 
         // --- Game State ---
         let currentQuestionIndex = 0;
@@ -494,6 +534,7 @@
         const totalEndings = 4;
         let currentTimeoutId = null;
         let pongGameLoopId = null;
+        let whisperInterval = null;
         let userLocation = { city: "your city", region: "your area", isUS: true };
         let surveyAnswers = {};
         let creditsHaveBeenShownThisSession = false;
@@ -501,38 +542,55 @@
         let gameState = 'CONSENT';
 
         const questions = [
-            { id: "q1", question: "Let's begin. What time of day do you prefer?", answers: [ {text:"Morning"}, {text:"Afternoon"}, {text:"Evening"}, {text:"Night"} ] },
+            { id: "q_intro", question: "Please provide your name.", isTextInput: true, key: "userName" },
+            { id: "q1", question: "Let's begin, {user_name}. What time of day do you prefer?", answers: [ {text:"Morning"}, {text:"Afternoon"}, {text:"Evening"}, {text:"Night"} ] },
             { id: "q2", question: "What is your favorite color?", isColor: true, answers: [ {text:"Red"}, {text:"Orange"}, {text:"Yellow"}, {text:"Green"}, {text:"Blue"}, {text:"Purple"}, {text:"Pink"}, {text:"White"} ] },
             { id: "q3", question: "Do you prefer coffee or tea?", answers: [ {text:"Coffee"}, {text:"Tea"}, {text:"Neither"} ] },
             { id: "q4", question: "What is your favorite season?", answers: [ {text:"Spring"}, {text:"Summer"}, {text:"Autumn"}, {text:"Winter"} ] },
             { id: "q5", question: "Are you a dog person or a cat person?", answers: [ {text:"Dog Person"}, {text:"Cat Person"}, {text:"Both"}, {text:"Neither"} ] },
-            { id: "q6", question: "Do you consider yourself an introvert or an extrovert?", answers: [ {text:"Introvert", response:"We understand. It's quieter that way."}, {text:"Extrovert", response:"Interesting. You must enjoy company."} ] },
-            { id: "q7", question: "Which sound do you find more comforting?", answers: [ {text:"Rain against a window"}, {text:"A crackling fireplace"} ] },
-            { id: "q8", question: "Are you currently in a place you consider 'home'?", key: "isHome", answers: [ {text:"Yes"}, {text:"No"} ] },
-            { id: "q9", question: "Do you enjoy the quiet?", answers: [ {text:"Yes"}, {text:"No"} ] },
-            { id: "q10", question: "A simple question. Do you lock your doors at night?", key: "locksDoors", answers: [ {text:"Always"}, {text:"Sometimes"}, {text:"Never"} ] },
-            { id: "q11", question: "Before we continue... care for a game?", isPong: true, answers: [ {text:"Yes"}, {text:"No"} ] },
-            { id: "q12", question: "That was fun. Let's continue.", answers: [ {text:"Okay"} ] },
-            { id: "q13", question: "Do you ever feel like you're being watched?", answers: [ {text:"Sometimes"}, {text:"Never"} ] },
-            { id: "q14", question: "Have you ever heard a noise you couldn't explain?", answers: [ {text:"Yes"}, {text:"No"} ] },
-            { id: "q15", question: "A floorboard creaking upstairs when you're home alone?", answers: [ {text:"Yes..."}, {text:"No, that's silly"} ] },
-            { id: "q16", question: "Or a whisper that sounds like your name?", answers: [ {text:"I have"}, {text:"Never"} ] },
-            { id: "q17", question: "Are all the lights off in your room right now?", answers: [ {text:"Yes"}, {text:"No"} ] },
-            { id: "q18", question: "What about the closet door? Is it open or closed?", answers: [ {text:"Open"}, {text:"Closed"} ] },
-            { id: "q19", question: "Do you feel safe where you are right now?", answers: [ {text:"Yes, completely."}, {text:"Not really."} ] },
-            { id: "q20", condition: (answers) => answers.locksDoors === 'Never', question: "You never lock your doors. Are you sure you're safe?", answers: [ {text:"I'm safe."}, {text:"...I'll lock them."} ] },
-            { id: "q21", question: "Are you alone right now?", key: "isAlone", answers: [ {text:"Yes."}, {text:"No, someone is with me."} ] },
-            { id: "q22", condition: (answers) => answers.isAlone === 'No, someone is with me.', question: "Are you sure you know who is with you?", answers: [ {text:"Yes, of course."}, {text:"...What do you mean?"} ] },
-            { id: "q23", condition: (answers) => answers.isAlone === 'Yes.', question: "Are you sure?", answers: [ {text:"Yes, I'm sure."}, {text:"Now you're making me doubt."} ] },
-            { id: "q24", question: "It's {user_time} in {user_city}. Why are you still awake?", dynamic: "time", answers: [ {text:"I can't sleep."}, {text:"Who is this?"} ] },
-            { id: "q25", question: "We enjoy {user_region}. So much history.", answers: [ {text:"..."}, {text:"How do you know that?"} ] },
-            { id: "q26", question: "Does your own heartbeat ever sound too loud in the quiet?", answers: [ {text:"Sometimes."}, {text:"No."} ] },
-            { id: "q27", question: "Have you checked the window recently?", answers: [ {text:"No"}, {text:"Why would I?"} ] },
-            { id: "q28", question: "No reason.", answers: [ {text:"..."}, {text:"Okay."} ] },
-            { id: "q29", question: "Did you hear that?", answers: [ {text:"I heard nothing."}, {text:"What was that?"} ] },
-            { id: "q30", question: "A faint tapping sound.", answers: [ {text:"I don't hear it."}, {text:"Where is it coming from?"} ] },
-            { id: "q31", question: "It stopped.", answers: [ {text:"..."}, {text:"Good."} ] },
-            { id: "q32", question: "Or... Did it..?", answers: [ {text:"What?"}, {text:"Huh?"} ] }
+            { id: "q6", question: "Do you prefer a window seat or an aisle seat on a plane?", answers: [ {text:"Window"}, {text:"Aisle"} ] },
+            { id: "q7", question: "What kind of music do you enjoy?", answers: [ {text:"Pop"}, {text:"Rock"}, {text:"Hip Hop"}, {text:"Classical"}, {text:"Other"} ] },
+            { id: "q8", question: "Do you enjoy reading?", answers: [ {text:"Yes"}, {text:"No"}, {text:"Sometimes"} ] },
+            { id: "q9", question: "Are you an early bird or a night owl?", key: "birdOrOwl", answers: [ {text:"Early Bird"}, {text:"Night Owl"} ] },
+            { id: "q10", question: "Do you have any hobbies?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q11", question: "Do you play video games?", answers: [ {text:"Often"}, {text:"Sometimes"}, {text:"Rarely"}, {text:"Never"} ] },
+            { id: "q12", question: "Do you prefer the mountains or the beach?", answers: [ {text:"Mountains"}, {text:"Beach"} ] },
+            { id: "q13", question: "What is your favorite holiday?", answers: [ {text:"New Year's"}, {text:"Halloween"}, {text:"Thanksgiving"}, {text:"Christmas"}, {text:"Other"} ] },
+            { id: "q14", question: "Do you believe in luck?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q15", question: "Are you sitting comfortably?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q16", question: "Please click the square.", isInteractive: true, answers: [] },
+            { id: "q17", question: "Thank you. That was a test of your compliance.", answers: [ {text:"..."} ] },
+            { id: "q18", question: "Are you currently in a place you consider 'home'?", key: "isHome", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q19", question: "A simple question. Do you lock your doors at night?", key: "locksDoors", answers: [ {text:"Always"}, {text:"Sometimes"}, {text:"Never"} ] },
+            { id: "q20", question: "Before we continue... care for a game?", isPong: true, answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q21", question: "Let's continue.", answers: [ {text:"Okay"} ] },
+            { id: "q22", question: "Do you ever have dreams you can't quite remember, but the feeling stays with you all day?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q23", question: "Have you ever experienced deja vu? The feeling that you've lived this exact moment before?", answers: [ {text:"Yes, often"}, {text:"A few times"}, {text:"Never"} ] },
+            { id: "q24", question: "Do you ever talk to yourself when you're alone?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q25", question: "What was the name of your first pet? If you didn't have one, what would you have named it?", isTextInput: true, key: "petName" },
+            { id: "q26", question: "You said your favorite color was {color}. Is there a memory attached to that color?", answers: [ {text:"Yes"}, {text:"No"}, {text:"I don't think so."} ] },
+            { id: "q27", question: "Do you ever have the feeling that you've forgotten something important?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q28", question: "Have you ever seen something out of the corner of your eye, but when you turn to look, nothing is there?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q29", question: "Do you trust your own memory?", answers: [ {text:"Yes"}, {text:"Most of the time."}, {text:"No"} ] },
+            { id: "q30", question: "Are you alone right now?", key: "isAlone", answers: [ {text:"Yes."}, {text:"No, someone is with me."} ] },
+            { id: "q31", condition: (answers) => answers.isAlone === 'No, someone is with me.', question: "Are you sure you know who is with you?", answers: [ {text:"Yes, of course."}, {text:"...What do you mean?"} ] },
+            { id: "q32", condition: (answers) => answers.isAlone === 'Yes.', question: "Are you sure?", answers: [ {text:"Yes, I'm sure."}, {text:"Now you're making me doubt."} ] },
+            { id: "q33", condition: (answers) => answers.locksDoors === 'Always', question: "You said you always lock your doors. Are you certain you did tonight?", answers: [ {text:"I am certain."}, {text:"I think so."} ] },
+            { id: "q34", condition: (answers) => answers.locksDoors === 'Never', question: "You never lock your doors. Do you feel safe?", answers: [ {text:"I'm safe."}, {text:"...I'll lock them."} ] },
+            { id: "q35", question: "It's {user_time} in {user_city}. Why are you still awake?", dynamic: "time", answers: [ {text:"I can't sleep."}, {text:"Who is this?"} ] },
+            { id: "q36", question: "We know {user_region} well. The quiet streets are nice at this hour.", answers: [ {text:"..."}, {text:"How do you know that?"} ] },
+            { id: "q37", question: "Have you ever had the feeling that a familiar place, like your own home, suddenly feels... wrong?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q38", question: "The answers you're giving... are they the truth?", isSwapping: true, answers: [ {text:"Yes", swap:"No"}, {text:"No", swap:"Yes"} ] },
+            { id: "q39", question: "Does your own heartbeat ever sound too loud in the quiet?", answers: [ {text:"Sometimes."}, {text:"No."} ] },
+            { id: "q40", question: "Have you checked the window recently?", id: "window_check", answers: [ {text:"No"}, {text:"Why would I?"} ] },
+            { id: "q41", question: "There was a noise just now. Wasn't there?", answers: [ {text:"I heard nothing."}, {text:"What was that?"} ] },
+            { id: "q42", question: "You seem tense, {user_name}. Why?", answers: [ {text:"I'm not."}, {text:"This is unnerving."} ] },
+            { id: "q43", condition: (answers) => answers.isAlone === 'Yes.', question: "We know you're alone.", answers: [ {text:"..."}, {text:"How?"} ] },
+            { id: "q44", condition: (answers) => answers.isAlone === 'No, someone is with me.', question: "The person you thought was with you isn't real.", answers: [ {text:"You're lying."}, {text:"They are right here."} ] },
+            { id: "q45", question: "We've been enjoying this conversation.", answers: [ {text:"Who is 'we'?"}, {text:"I haven't."} ] },
+            { id: "q46", question: "You don't see it?", answers: [ {text:"Who?"}, {text:"What?"} ] },
+            { id: "q47", question: "The man behind you", answers: [ {text:"There is no man?"}, {text:"Huh?"} ] },
+            { id: "q48", question: "I guess it was nothing.", answers: [ {text:"You scared me"}, {text:"..."} ] }
         ];
         
         // --- PONG GAME ---
@@ -627,7 +685,7 @@
             gameState = 'PAUSED';
             pongContainer.classList.add('hidden');
             surveyScreen.classList.remove('hidden');
-            answerContainer.classList.remove('visible');
+            answerContainer.innerHTML = '';
             typewriter(message, questionContainer, () => {
                 currentTimeoutId = setTimeout(callback, 2000);
             });
@@ -640,7 +698,7 @@
             pongGameLoopId = null;
             
             if (player.score === WINNING_SCORE) {
-                showPostGameMessage("Great job!", () => {
+                showPostGameMessage("Wow you beat me, Excellently Played...", () => {
                     showEndingWrapper(pongEndingSequence);
                 });
             } else {
@@ -698,8 +756,7 @@
                 currentQuestionIndex++;
             }
 
-            logState(`Displaying question ${currentQuestionIndex + 1}`);
-            questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${questions.length}`;
+            logState(`Displaying question ${q.id}`);
             
             let processedQuestion;
             if (q.dynamic === 'time') {
@@ -707,7 +764,7 @@
                 const hour = now.getHours();
                 const timeString = userLocation.isUS ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
                 
-                if (hour >= 6 && hour < 12) {
+                if (hour >= 6 && hour < 22) {
                     processedQuestion = "How long have you been awake..?"
                 } else {
                     processedQuestion = `It's ${timeString} in ${userLocation.city}. Why are you still awake?`
@@ -715,13 +772,60 @@
             } else {
                 processedQuestion = q.question.replace('{user_city}', userLocation.city);
                 processedQuestion = processedQuestion.replace('{user_region}', userLocation.region);
+                processedQuestion = processedQuestion.replace('{color}', surveyAnswers.favoriteColor || 'that');
+                processedQuestion = processedQuestion.replace('{user_name}', surveyAnswers.userName || 'you');
             }
 
             answerContainer.innerHTML = "";
             answerContainer.classList.remove('visible');
 
             typewriter(processedQuestion, questionContainer, () => {
+                if (q.id === 'window_check') {
+                    setTimeout(() => playSound(windowTapSound), 500);
+                }
                 if (gameState !== 'SURVEY') return;
+
+                if (q.isInteractive) {
+                    const square = document.createElement('div');
+                    square.classList.add('interactive-square');
+                    square.onclick = () => {
+                        if (isTyping) return;
+                        currentQuestionIndex++;
+                        displayQuestion();
+                    };
+                    answerContainer.appendChild(square);
+                    answerContainer.classList.add('visible');
+                    return;
+                }
+                
+                if (q.isTextInput) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = 'text-input-answer';
+                    const submit = document.createElement('button');
+                    submit.id = 'submit-text-button';
+                    submit.textContent = 'Submit';
+                    
+                    submit.onclick = () => {
+                        if (q.key) {
+                            surveyAnswers[q.key] = input.value || "silent";
+                            logState(`Answer stored: ${q.key} = ${surveyAnswers[q.key]}`);
+                        }
+                        currentQuestionIndex++;
+                        displayQuestion();
+                    };
+                    
+                    input.addEventListener('keyup', (e) => {
+                        if (e.key === 'Enter') submit.click();
+                    });
+                    
+                    answerContainer.appendChild(input);
+                    answerContainer.appendChild(submit);
+                    answerContainer.classList.add('visible');
+                    input.focus();
+                    return;
+                }
+
                 q.answers.forEach(answer => {
                     const button = document.createElement('button');
                     button.textContent = answer.text;
@@ -741,6 +845,11 @@
                             button.style.color = 'var(--primary-color)';
                         });
                     }
+                    
+                    if (q.isSwapping) {
+                        button.addEventListener('mouseover', () => { button.textContent = answer.swap; });
+                        button.addEventListener('mouseout', () => { button.textContent = answer.text; });
+                    }
 
                     button.onclick = () => {
                         if (gameState !== 'SURVEY' || isTyping) return;
@@ -749,6 +858,9 @@
                         if (q.key) {
                             surveyAnswers[q.key] = answer.text;
                             logState(`Answer stored: ${q.key} = ${answer.text}`);
+                        }
+                        if (q.isColor) {
+                            surveyAnswers.favoriteColor = answer.text;
                         }
 
                         if (q.isPong) {
@@ -779,7 +891,6 @@
         }
         
         function hideGameUI() {
-            questionCounter.classList.add('fading-out');
             exitButton.classList.add('fading-out');
         }
         
@@ -845,12 +956,12 @@
         function showCredits(onComplete) {
             logState('Showing credits');
             gameState = 'CREDITS';
-            endingScreen.classList.add('hidden');
             creditsScreen.classList.remove('hidden');
             creditsScrollContainer.innerHTML = '';
             creditsScrollContainer.style.animation = 'none';
             creditsScrollContainer.offsetHeight; 
             creditsScrollContainer.style.animation = ''; 
+            finalCreditContainer.innerHTML = '';
 
             const mainCredits = ["Maddie", "Gemini AI", "The Surveyor"];
             mainCredits.forEach(name => {
@@ -875,9 +986,6 @@
 
             setTimeout(() => {
                 clearInterval(glitchInterval);
-                const finalP = document.createElement('p');
-                finalP.id = "final-credit";
-                creditsScrollContainer.appendChild(finalP);
             }, 18000);
             
             creditsScrollContainer.addEventListener('animationend', () => {
@@ -891,7 +999,7 @@
                         onComplete();
                     }, 2000);
                 }, 'var(--primary-color)', 500);
-            });
+            }, { once: true });
 
             creditsScrollContainer.style.animation = 'scroll-credits 20s linear forwards';
         }
@@ -917,7 +1025,6 @@
         function showEnding(title, subtitle, color, isParanoid = false) {
             logState(`Showing ending: ${title}`);
             gameState = 'ENDING';
-            playSound(endingSound);
             
             const screens = [consentScreen, introScreen, titleScreen, surveyScreen, pongContainer, creditsScreen];
             screens.forEach(s => s.classList.add('hidden'));
@@ -929,6 +1036,15 @@
             endingTitle.classList.remove('paranoid');
             
             if (isParanoid) {
+                paranoidAmbiance.play();
+                whisperInterval = setInterval(() => {
+                    if (gameState === 'ENDING' && isParanoid) {
+                        if (Math.random() < 0.2) playSound(paranoidWhisper);
+                    } else {
+                        clearInterval(whisperInterval);
+                    }
+                }, 5000);
+                
                 endingTitle.classList.add('paranoid');
                 populateParanoidBackground();
                 title.split('').forEach(char => {
@@ -940,6 +1056,7 @@
                     endingTitle.appendChild(span);
                 });
             } else {
+                playSound(endingSound);
                 endingTitle.textContent = title;
             }
             
@@ -993,7 +1110,7 @@
 
         function goodEndingSequence() { showEndingWrapper(() => showEnding("The End", `You found ending 1 of ${totalEndings}`, 'var(--primary-color)')); }
         function badEndingSequence() { showEndingWrapper(() => showEnding("The Bad Ending", `You found ending 2 of ${totalEndings}`, 'var(--danger-color)')); }
-        function pongEndingSequence() { showEndingWrapper(() => showEnding("The Pong Ending", `You found ending 3 of ${totalEndings}`, 'var(--primary-color)')); }
+        function pongEndingSequence() { showEndingWrapper(() => showEnding("The Pong Ending", `You found ending 3 of ${totalEndings}`, 'var(--pong-yellow)')); }
         function paranoidEndingSequence() {
             showEnding("THE PARANOID ENDING", `You found ending 4 of ${totalEndings}`, 'var(--primary-color)', true);
         }
@@ -1012,9 +1129,11 @@
             currentQuestionIndex = 0;
             exitAttempts = 0;
             surveyAnswers = {};
+            paranoidAmbiance.pause();
+            paranoidAmbiance.currentTime = 0;
+            if (whisperInterval) clearInterval(whisperInterval);
             
             endingScreen.classList.add('hidden');
-            questionCounter.classList.remove('fading-out');
             exitButton.classList.remove('fading-out');
             
             if (fromParanoid) {
@@ -1053,11 +1172,17 @@
         
         consentContinueButton.addEventListener('click', () => {
             playSound(clickSound);
-            consentScreen.style.animation = 'fadeInOut 1s forwards reverse';
-            setTimeout(() => {
-                introScreen.classList.remove('hidden');
-                introScreen.style.animation = 'fadeInOut 5s forwards';
-            }, 1000);
+            consentScreen.classList.add('hidden');
+            loreScreen.classList.remove('hidden');
+            typewriter("We are conducting this survey to better understand the human psyche. Your honest participation is appreciated.", loreText, () => {
+                setTimeout(() => {
+                    loreScreen.style.animation = 'fadeInOut 1s forwards reverse';
+                    setTimeout(() => {
+                        introScreen.classList.remove('hidden');
+                        introScreen.style.animation = 'fadeInOut 5s forwards';
+                    }, 1000);
+                }, 3000);
+            });
         });
         
         consentQuitButton.addEventListener('click', () => {
@@ -1129,7 +1254,7 @@
                     questionContainer.innerHTML = '';
                     answerContainer.innerHTML = '';
                     answerContainer.classList.remove('visible');
-                    typewriter("Fine.", questionContainer, () => { triggerJumpscare(true); }, 'var(--danger-color)');
+                    triggerJumpscare(true);
                     break;
             }
         });
