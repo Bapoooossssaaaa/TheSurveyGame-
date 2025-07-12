@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Survey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFFFFF;
+            --bg-color: #000000;
+            --danger-color: #FF0000;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: 'Courier Prime', monospace;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #question-counter, #exit-button {
+            position: fixed;
+            top: 20px;
+            font-size: 1.2em;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 10;
+        }
+        
+        #question-counter {
+            left: 20px;
+        }
+
+        #exit-button {
+            right: 20px;
+            background: none;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            font-family: 'Courier Prime', monospace;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        #exit-button:hover {
+            background: var(--primary-color);
+            color: var(--bg-color);
+        }
+
+        #start-button, .answer-button, #play-again-button, #pong-start-button, .consent-button {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-family: 'Courier Prime', monospace;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.2s, opacity 0.3s;
+        }
+
+        #start-button:hover, .answer-button:hover, #play-again-button:hover, #pong-start-button:hover, .consent-button:hover {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            transform: scale(1.05);
+        }
+
+        .answer-button.white-color-button:hover {
+             background-color: transparent !important;
+             color: var(--primary-color) !important;
+        }
+        
+        .consent-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: transparent !important;
+            color: var(--primary-color) !important;
+            transform: none;
+        }
+
+        #question-container {
+            min-height: 150px;
+            font-size: 1.8em;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #answer-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        #answer-container.visible {
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        .fading-out {
+            opacity: 0 !important;
+        }
+
+        #jumpscare-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+        
+        #jumpscare-container.active {
+            display: flex;
+        }
+
+        #jumpscare-image {
+            max-width: 95vw;
+            max-height: 95vh;
+            object-fit: contain;
+            transform: scale(0.1);
+            opacity: 0;
+        }
+        
+        @keyframes flash-epilepsy {
+            0%, 100% { background-color: var(--bg-color); }
+            25% { background-color: var(--primary-color); }
+            50% { background-color: #000000; }
+            75% { background-color: var(--primary-color); }
+        }
+
+        @keyframes image-flash-and-shake {
+            0%   { transform: translate(3px, 3px) rotate(0deg) scale(var(--scale)); filter: brightness(1); }
+            10%  { transform: translate(-4px, -6px) rotate(-2.5deg) scale(var(--scale)); }
+            20%  { transform: translate(-7px, 1px) rotate(2.5deg) scale(var(--scale)); filter: brightness(0); }
+            30%  { transform: translate(7px, 5px) rotate(0deg) scale(var(--scale)); }
+            40%  { transform: translate(4px, -4px) rotate(2.5deg) scale(var(--scale)); filter: brightness(1); }
+            50%  { transform: translate(-4px, 6px) rotate(-2.5deg) scale(var(--scale)); }
+            60%  { transform: translate(-7px, 4px) rotate(0deg) scale(var(--scale)); filter: brightness(0); }
+            70%  { transform: translate(7px, 4px) rotate(-2.5deg) scale(var(--scale)); }
+            80%  { transform: translate(-4px, -4px) rotate(2.5deg) scale(var(--scale)); filter: brightness(1); }
+            90%  { transform: translate(4px, 6px) rotate(0deg) scale(var(--scale)); }
+            100% { transform: translate(4px, -6px) rotate(-2.5deg) scale(var(--scale)); filter: brightness(0); }
+        }
+        
+        .jumpscare-active #jumpscare-container {
+            animation: flash-epilepsy 0.07s infinite;
+        }
+        
+        .jumpscare-active #jumpscare-image {
+            --scale: 1.2;
+            animation: aggressive-zoom 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards, image-flash-and-shake 0.05s 0.3s infinite;
+        }
+        
+        .jumpscare-image-fadeout {
+            animation-name: aggressive-zoom, image-flash-and-shake, fade-out-monster !important;
+            animation-duration: 0.3s, 0.05s, 0.5s !important;
+            animation-timing-function: cubic-bezier(0.68, -0.55, 0.27, 1.55), linear, ease-out !important;
+            animation-delay: 0s, 0.3s, var(--fade-delay) !important;
+            animation-iteration-count: 1, infinite, 1 !important;
+            animation-fill-mode: forwards, infinite, forwards !important;
+        }
+
+        @keyframes aggressive-zoom {
+            from { transform: scale(0.1); opacity: 0; }
+            to { transform: scale(var(--scale)); opacity: 1; }
+        }
+        
+        @keyframes fade-out-monster {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        #ending-screen, #credits-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            top: 0; left: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            z-index: 1002;
+        }
+        
+        #eye-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ending-title {
+            font-size: 3em;
+            margin: 0;
+            font-weight: normal;
+            z-index: 2;
+        }
+        
+        #ending-subtitle, #play-again-button {
+            z-index: 2;
+        }
+        
+        #ending-subtitle {
+            font-size: 1.5em;
+            margin-top: 10px;
+            color: #aaa;
+        }
+        
+        #intro-screen, #consent-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        #intro-screen svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; visibility: hidden; }
+            20%, 80% { opacity: 1; visibility: visible; }
+        }
+        
+        #pong-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #pong-canvas {
+            border: 2px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        #consent-checkbox-label {
+            margin: 20px;
+            cursor: pointer;
+        }
+
+        #consent-checkbox {
+            margin-right: 10px;
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+        
+        .paranoid-eye {
+            position: absolute;
+            width: 100px;
+            height: auto;
+            opacity: 0;
+            animation-name: appear-disappear-slow;
+            animation-timing-function: steps(1, end);
+            animation-iteration-count: infinite;
+        }
+        
+        @keyframes appear-disappear-slow {
+            0% { opacity: 0; }
+            50% { opacity: var(--max-opacity, 0.4); }
+            100% { opacity: 0; }
+        }
+        
+        #ending-title.paranoid {
+            animation: subtle-shake 1s infinite linear;
+        }
+        
+        #ending-title.paranoid span {
+            animation-name: slow-char-flicker;
+            animation-duration: 6s;
+            animation-iteration-count: infinite;
+            animation-timing-function: steps(1, end);
+            text-shadow: 0 0 8px #fff, 0 0 15px #fff;
+        }
+        
+        @keyframes slow-char-flicker {
+            50% {
+                opacity: 0;
+            }
+        }
+        
+        @keyframes subtle-shake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, 1px); }
+            75% { transform: translate(1px, -1px); }
+        }
+
+        #credits-scroll-container {
+            position: absolute;
+            top: 100%;
+            width: 100%;
+            text-align: center;
+            animation: scroll-credits 20s linear forwards;
+        }
+        
+        #credits-scroll-container p {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+
+        @keyframes scroll-credits {
+            from { top: 100%; }
+            to { top: -100%; }
+        }
+
+        #debug-menu {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: #333;
+            border: 1px solid var(--primary-color);
+            padding: 15px;
+            z-index: 1002;
+            font-size: 0.9em;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div id="consent-screen">
+        <h3>Consent</h3>
+        <p>This experience uses your approximate location and local time to personalize the content.<br>No data is stored or used for any other purpose.</p>
+        <div>
+            <label id="consent-checkbox-label">
+                <input type="checkbox" id="consent-checkbox">
+                I consent to my location and time being used.
+            </label>
+        </div>
+        <div>
+            <button id="consent-continue" class="consent-button" disabled>Continue</button>
+            <button id="consent-quit" class="consent-button">Quit</button>
+        </div>
+    </div>
+    
+    <div id="intro-screen" class="hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="64px" height="64px"><path d="M12 3a9 9 0 00-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 00-9-9z"/></svg>
+        <p>Wear headphones for the best experience.</p>
+    </div>
+
+    <div id="game-wrapper">
+        <div id="title-screen" class="hidden">
+            <h1>The Survey</h1>
+            <button id="start-button">Begin</button>
+        </div>
+
+        <div id="survey-screen" class="hidden">
+            <div id="question-counter"></div>
+            <button id="exit-button">Exit Survey</button>
+            <div id="game-container">
+                <div id="question-container"></div>
+                <div id="answer-container"></div>
+            </div>
+        </div>
+        
+        <div id="pong-container" class="hidden">
+            <canvas id="pong-canvas" width="600" height="400"></canvas>
+            <button id="pong-start-button">Start Game</button>
+        </div>
+        
+        <div id="credits-screen" class="hidden">
+            <div id="credits-scroll-container"></div>
+        </div>
+        
+        <div id="ending-screen" class="hidden">
+            <div id="eye-background"></div>
+            <h2 id="ending-title"></h2>
+            <p id="ending-subtitle"></p>
+            <button id="play-again-button">Play Again</button>
+        </div>
+    </div>
+
+    <div id="jumpscare-container">
+        <img id="jumpscare-image" src="https://github.com/Bapoooossssaaaa/dsdsadsa/blob/main/ezgif-3d9f6084ed563b.png?raw=true" alt="A scary face">
+    </div>
+
+    <div id="debug-menu" class="hidden">
+        <h3>Debug Menu</h3>
+        <label><input type="checkbox" id="jumpscare-toggle" checked> Enable Jumpscare</label>
+        <br>
+        <label><input type="checkbox" id="audio-toggle" checked> Enable Audio</label>
+    </div>
+
+    <audio id="type-sound-1" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-1_pressed_Letter_on_-1752299842567.mp3" preload="auto"></audio>
+    <audio id="type-sound-2" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-1_pressed_Letter_on_-1752299843427.mp3" preload="auto"></audio>
+    <audio id="type-sound-3" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-1_pressed_Letter_on_-1752299844289.mp3" preload="auto"></audio>
+    <audio id="type-sound-4" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-1_pressed_Letter_on_-1752299845048.mp3" preload="auto"></audio>
+    <audio id="jumpscare-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-Loud_Screaming_Monst-1752299486016.mp3" preload="auto"></audio>
+    <audio id="click-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-Modern_UI_Click_Soun-1752301957418.mp3" preload="auto"></audio>
+    <audio id="ending-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-Scary_Echoed_Bell-1752301548265.mp3" preload="auto"></audio>
+    <audio id="paddle-hit-left" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-single_tone_beep_ret-1752305029222.mp3" preload="auto"></audio>
+    <audio id="paddle-hit-right" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-single_tone_beep_ret-1752305025302.mp3" preload="auto"></audio>
+    <audio id="point-sound" src="https://github.com/Bapoooossssaaaa/dsdsadsa/raw/refs/heads/main/11L-point_single_tone_be-1752305055395.mp3" preload="auto"></audio>
+
+    <script>
+        // --- DOM Elements ---
+        const consentScreen = document.getElementById('consent-screen');
+        const consentCheckbox = document.getElementById('consent-checkbox');
+        const consentContinueButton = document.getElementById('consent-continue');
+        const consentQuitButton = document.getElementById('consent-quit');
+        const introScreen = document.getElementById('intro-screen');
+        const startButton = document.getElementById('start-button');
+        const titleScreen = document.getElementById('title-screen');
+        const surveyScreen = document.getElementById('survey-screen');
+        const questionContainer = document.getElementById('question-container');
+        const answerContainer = document.getElementById('answer-container');
+        const jumpscareContainer = document.getElementById('jumpscare-container');
+        const jumpscareImage = document.getElementById('jumpscare-image');
+        const debugMenu = document.getElementById('debug-menu');
+        const jumpscareToggle = document.getElementById('jumpscare-toggle');
+        const audioToggle = document.getElementById('audio-toggle');
+        const questionCounter = document.getElementById('question-counter');
+        const exitButton = document.getElementById('exit-button');
+        const creditsScreen = document.getElementById('credits-screen');
+        const creditsScrollContainer = document.getElementById('credits-scroll-container');
+        const endingScreen = document.getElementById('ending-screen');
+        const eyeBackground = document.getElementById('eye-background');
+        const endingTitle = document.getElementById('ending-title');
+        const endingSubtitle = document.getElementById('ending-subtitle');
+        const playAgainButton = document.getElementById('play-again-button');
+        const pongContainer = document.getElementById('pong-container');
+        const pongCanvas = document.getElementById('pong-canvas');
+        const pongStartButton = document.getElementById('pong-start-button');
+        const pongCtx = pongCanvas.getContext('2d');
+
+        // --- Audio ---
+        const typeSounds = Array.from({length: 4}, (_, i) => document.getElementById(`type-sound-${i+1}`));
+        const jumpscareSound = document.getElementById('jumpscare-sound');
+        const clickSound = document.getElementById('click-sound');
+        const endingSound = document.getElementById('ending-sound');
+        const paddleHitLeftSound = document.getElementById('paddle-hit-left');
+        const paddleHitRightSound = document.getElementById('paddle-hit-right');
+        const pointSound = document.getElementById('point-sound');
+
+        // --- Game State ---
+        let currentQuestionIndex = 0;
+        let isTyping = false;
+        let exitAttempts = 0;
+        let debugCode = "MONSTERSLURKWITHIN";
+        let currentCodeInput = "";
+        const totalEndings = 4;
+        let currentTimeoutId = null;
+        let pongGameLoopId = null;
+        let userLocation = { city: "your city", region: "your area", isUS: true };
+        let surveyAnswers = {};
+        let creditsHaveBeenShownThisSession = false;
+        
+        let gameState = 'CONSENT';
+
+        const questions = [
+            { id: "q1", question: "Let's begin. What time of day do you prefer?", answers: [ {text:"Morning"}, {text:"Afternoon"}, {text:"Evening"}, {text:"Night"} ] },
+            { id: "q2", question: "What is your favorite color?", isColor: true, answers: [ {text:"Red"}, {text:"Orange"}, {text:"Yellow"}, {text:"Green"}, {text:"Blue"}, {text:"Purple"}, {text:"Pink"}, {text:"White"} ] },
+            { id: "q3", question: "Do you prefer coffee or tea?", answers: [ {text:"Coffee"}, {text:"Tea"}, {text:"Neither"} ] },
+            { id: "q4", question: "What is your favorite season?", answers: [ {text:"Spring"}, {text:"Summer"}, {text:"Autumn"}, {text:"Winter"} ] },
+            { id: "q5", question: "Are you a dog person or a cat person?", answers: [ {text:"Dog Person"}, {text:"Cat Person"}, {text:"Both"}, {text:"Neither"} ] },
+            { id: "q6", question: "Do you consider yourself an introvert or an extrovert?", answers: [ {text:"Introvert", response:"We understand. It's quieter that way."}, {text:"Extrovert", response:"Interesting. You must enjoy company."} ] },
+            { id: "q7", question: "Which sound do you find more comforting?", answers: [ {text:"Rain against a window"}, {text:"A crackling fireplace"} ] },
+            { id: "q8", question: "Are you currently in a place you consider 'home'?", key: "isHome", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q9", question: "Do you enjoy the quiet?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q10", question: "A simple question. Do you lock your doors at night?", key: "locksDoors", answers: [ {text:"Always"}, {text:"Sometimes"}, {text:"Never"} ] },
+            { id: "q11", question: "Before we continue... care for a game?", isPong: true, answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q12", question: "That was fun. Let's continue.", answers: [ {text:"Okay"} ] },
+            { id: "q13", question: "Do you ever feel like you're being watched?", answers: [ {text:"Sometimes"}, {text:"Never"} ] },
+            { id: "q14", question: "Have you ever heard a noise you couldn't explain?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q15", question: "A floorboard creaking upstairs when you're home alone?", answers: [ {text:"Yes..."}, {text:"No, that's silly"} ] },
+            { id: "q16", question: "Or a whisper that sounds like your name?", answers: [ {text:"I have"}, {text:"Never"} ] },
+            { id: "q17", question: "Are all the lights off in your room right now?", answers: [ {text:"Yes"}, {text:"No"} ] },
+            { id: "q18", question: "What about the closet door? Is it open or closed?", answers: [ {text:"Open"}, {text:"Closed"} ] },
+            { id: "q19", question: "Do you feel safe where you are right now?", answers: [ {text:"Yes, completely."}, {text:"Not really."} ] },
+            { id: "q20", condition: (answers) => answers.locksDoors === 'Never', question: "You never lock your doors. Are you sure you're safe?", answers: [ {text:"I'm safe."}, {text:"...I'll lock them."} ] },
+            { id: "q21", question: "Are you alone right now?", key: "isAlone", answers: [ {text:"Yes."}, {text:"No, someone is with me."} ] },
+            { id: "q22", condition: (answers) => answers.isAlone === 'No, someone is with me.', question: "Are you sure you know who is with you?", answers: [ {text:"Yes, of course."}, {text:"...What do you mean?"} ] },
+            { id: "q23", condition: (answers) => answers.isAlone === 'Yes.', question: "Are you sure?", answers: [ {text:"Yes, I'm sure."}, {text:"Now you're making me doubt."} ] },
+            { id: "q24", question: "It's {user_time} in {user_city}. Why are you still awake?", dynamic: "time", answers: [ {text:"I can't sleep."}, {text:"Who is this?"} ] },
+            { id: "q25", question: "We enjoy {user_region}. So much history.", answers: [ {text:"..."}, {text:"How do you know that?"} ] },
+            { id: "q26", question: "Does your own heartbeat ever sound too loud in the quiet?", answers: [ {text:"Sometimes."}, {text:"No."} ] },
+            { id: "q27", question: "Have you checked the window recently?", answers: [ {text:"No"}, {text:"Why would I?"} ] },
+            { id: "q28", question: "No reason.", answers: [ {text:"..."}, {text:"Okay."} ] },
+            { id: "q29", question: "Did you hear that?", answers: [ {text:"I heard nothing."}, {text:"What was that?"} ] },
+            { id: "q30", question: "A faint tapping sound.", answers: [ {text:"I don't hear it."}, {text:"Where is it coming from?"} ] },
+            { id: "q31", question: "It stopped.", answers: [ {text:"..."}, {text:"Good."} ] },
+            { id: "q32", question: "Or... Did it..?", answers: [ {text:"What?"}, {text:"Huh?"} ] }
+        ];
+        
+        // --- PONG GAME ---
+        const PADDLE_HEIGHT = 100, PADDLE_WIDTH = 10, PADDLE_SPEED = 8;
+        const WINNING_SCORE = 5;
+        let ball, player, ai;
+        const keys = { ArrowUp: false, ArrowDown: false };
+
+        function resetPong() {
+            ball = { x: pongCanvas.width / 2, y: pongCanvas.height / 2, radius: 7, speed: 5, velX: 5, velY: 5 };
+            player = { x: 0, y: (pongCanvas.height - PADDLE_HEIGHT) / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, score: 0 };
+            ai = { x: pongCanvas.width - PADDLE_WIDTH, y: (pongCanvas.height - PADDLE_HEIGHT) / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, score: 0 };
+        }
+
+        function drawRect(x, y, w, h, color) { pongCtx.fillStyle = color; pongCtx.fillRect(x, y, w, h); }
+        function drawCircle(x, y, r, color) { pongCtx.fillStyle = color; pongCtx.beginPath(); pongCtx.arc(x, y, r, 0, Math.PI * 2, false); pongCtx.closePath(); pongCtx.fill(); }
+        function drawNet() { for(let i = 0; i < pongCanvas.height; i+=15) drawRect(pongCanvas.width/2 - 1, i, 2, 10, "white"); }
+        function drawText(text, x, y, color) { pongCtx.fillStyle = color; pongCtx.font = "45px 'Courier Prime'"; pongCtx.fillText(text, x, y); }
+
+        function renderPong() {
+            drawRect(0, 0, pongCanvas.width, pongCanvas.height, "black");
+            drawText(`${player.score} / ${WINNING_SCORE}`, pongCanvas.width / 4 - 50, pongCanvas.height / 5, "white");
+            drawText(`${ai.score} / ${WINNING_SCORE}`, 3 * pongCanvas.width / 4 - 50, pongCanvas.height / 5, "white");
+            drawNet();
+            drawRect(player.x, player.y, player.width, player.height, "white");
+            drawRect(ai.x, ai.y, ai.width, ai.height, "white");
+            drawCircle(ball.x, ball.y, ball.radius, "white");
+        }
+
+        function collision(b, p) {
+            b.top = b.y - b.radius; b.bottom = b.y + b.radius; b.left = b.x - b.radius; b.right = b.x + b.radius;
+            p.top = p.y; p.bottom = p.y + p.height; p.left = p.x; p.right = p.x + p.width;
+            return b.right > p.left && b.bottom > p.top && b.left < p.right && b.top < p.bottom;
+        }
+
+        function updatePong() {
+            if (keys.ArrowUp && player.y > 0) player.y -= PADDLE_SPEED;
+            if (keys.ArrowDown && (player.y < pongCanvas.height - player.height)) player.y += PADDLE_SPEED;
+
+            ball.x += ball.velX;
+            ball.y += ball.velY;
+
+            let computerLevel = 0.035; 
+            if (Math.random() < 0.92) ai.y += (ball.y - (ai.y + ai.height / 2)) * computerLevel;
+
+            if (ball.y + ball.radius > pongCanvas.height || ball.y - ball.radius < 0) ball.velY = -ball.velY;
+            
+            let p = (ball.x < pongCanvas.width / 2) ? player : ai;
+            if (collision(ball, p)) {
+                playSound(p === player ? paddleHitLeftSound : paddleHitRightSound);
+                let collidePoint = (ball.y - (p.y + p.height / 2)) / (p.height / 2);
+                let angleRad = (Math.PI / 4) * collidePoint;
+                let direction = (ball.x < pongCanvas.width / 2) ? 1 : -1;
+                ball.velX = direction * ball.speed * Math.cos(angleRad);
+                ball.velY = ball.speed * Math.sin(angleRad);
+                ball.speed += 0.1;
+            }
+
+            if (ball.x + ball.radius < 0) { ai.score++; resetBall('ai'); } 
+            else if (ball.x - ball.radius > pongCanvas.width) { player.score++; resetBall('player'); }
+            
+            if(player.score === WINNING_SCORE || ai.score === WINNING_SCORE) endPongGame();
+        }
+        
+        function resetBall(winner) {
+            playSound(pointSound);
+            ball.x = pongCanvas.width / 2;
+            ball.y = pongCanvas.height / 2;
+            ball.speed = 5;
+            ball.velX = (winner === 'player') ? -5 : 5;
+        }
+
+        function pongGameLoop() {
+            if (gameState !== 'PONG_PLAYING') return;
+            updatePong();
+            renderPong();
+            pongGameLoopId = requestAnimationFrame(pongGameLoop);
+        }
+        
+        function transitionToPong() {
+            logState('Transitioning to PONG_INTRO');
+            gameState = 'PONG_INTRO';
+            surveyScreen.classList.add('hidden');
+            pongContainer.classList.remove('hidden');
+            pongStartButton.classList.remove('hidden');
+            resetPong();
+            renderPong();
+        }
+
+        function showPostGameMessage(message, callback) {
+            logState(`Displaying post-pong message: "${message}"`);
+            gameState = 'PAUSED';
+            pongContainer.classList.add('hidden');
+            surveyScreen.classList.remove('hidden');
+            answerContainer.classList.remove('visible');
+            typewriter(message, questionContainer, () => {
+                currentTimeoutId = setTimeout(callback, 2000);
+            });
+        }
+
+        function endPongGame() {
+            logState(`Ending Pong Game. Player score: ${player.score}, AI score: ${ai.score}`);
+            gameState = 'PONG_ENDED';
+            cancelAnimationFrame(pongGameLoopId);
+            pongGameLoopId = null;
+            
+            if (player.score === WINNING_SCORE) {
+                showPostGameMessage("Great job!", () => {
+                    showEndingWrapper(pongEndingSequence);
+                });
+            } else {
+                showPostGameMessage("It's okay to lose.", () => {
+                    logState("Resuming survey after pong loss");
+                    gameState = 'SURVEY';
+                    currentQuestionIndex++;
+                    displayQuestion();
+                });
+            }
+        }
+
+        function logState(message) { console.log(`[${new Date().toISOString()}] ${message}`); }
+
+        function playSound(sound) {
+            if (!audioToggle.checked) return;
+            sound.currentTime = 0;
+            sound.play().catch(e => {});
+        }
+
+        function typewriter(text, element, callback, color = 'var(--primary-color)', speed = 80) {
+            isTyping = true;
+            element.innerHTML = "";
+            element.style.color = color;
+            let i = 0;
+
+            function type() {
+                if (isTyping && i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    if (text.charAt(i) !== ' ') playSound(typeSounds[Math.floor(Math.random() * typeSounds.length)]);
+                    i++;
+                    currentTimeoutId = setTimeout(type, speed);
+                } else {
+                    isTyping = false;
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        function displayQuestion() {
+            if (gameState !== 'SURVEY' || isTyping) return;
+            
+            let q;
+            while(true) {
+                if (currentQuestionIndex >= questions.length) {
+                    logState("Reached end of questions, triggering jumpscare ending.");
+                    currentTimeoutId = setTimeout(() => triggerJumpscare(false), 500);
+                    return;
+                }
+                q = questions[currentQuestionIndex];
+                if (!q.condition || q.condition(surveyAnswers)) {
+                    break; 
+                }
+                currentQuestionIndex++;
+            }
+
+            logState(`Displaying question ${currentQuestionIndex + 1}`);
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${questions.length}`;
+            
+            let processedQuestion;
+            if (q.dynamic === 'time') {
+                const now = new Date();
+                const hour = now.getHours();
+                const timeString = userLocation.isUS ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
+                
+                if (hour >= 6 && hour < 12) {
+                    processedQuestion = "How long have you been awake..?"
+                } else {
+                    processedQuestion = `It's ${timeString} in ${userLocation.city}. Why are you still awake?`
+                }
+            } else {
+                processedQuestion = q.question.replace('{user_city}', userLocation.city);
+                processedQuestion = processedQuestion.replace('{user_region}', userLocation.region);
+            }
+
+            answerContainer.innerHTML = "";
+            answerContainer.classList.remove('visible');
+
+            typewriter(processedQuestion, questionContainer, () => {
+                if (gameState !== 'SURVEY') return;
+                q.answers.forEach(answer => {
+                    const button = document.createElement('button');
+                    button.textContent = answer.text;
+                    button.classList.add('answer-button');
+
+                    if (q.isColor) {
+                        const colorValue = answer.text.toLowerCase();
+                        if (colorValue === 'white') {
+                            button.classList.add('white-color-button');
+                        }
+                        button.addEventListener('mouseover', () => {
+                            button.style.borderColor = colorValue;
+                            button.style.color = colorValue;
+                        });
+                        button.addEventListener('mouseout', () => {
+                            button.style.borderColor = 'var(--primary-color)';
+                            button.style.color = 'var(--primary-color)';
+                        });
+                    }
+
+                    button.onclick = () => {
+                        if (gameState !== 'SURVEY' || isTyping) return;
+                        playSound(clickSound);
+                        
+                        if (q.key) {
+                            surveyAnswers[q.key] = answer.text;
+                            logState(`Answer stored: ${q.key} = ${answer.text}`);
+                        }
+
+                        if (q.isPong) {
+                            if (answer.text === 'Yes') transitionToPong();
+                            else { currentQuestionIndex++; displayQuestion(); }
+                            return;
+                        }
+
+                        if (answer.response) {
+                            gameState = 'PAUSED';
+                            answerContainer.classList.remove('visible');
+                            typewriter(answer.response, questionContainer, () => {
+                                currentTimeoutId = setTimeout(() => {
+                                    gameState = 'SURVEY';
+                                    currentQuestionIndex++;
+                                    displayQuestion();
+                                }, 1000);
+                            });
+                        } else {
+                            currentQuestionIndex++;
+                            displayQuestion();
+                        }
+                    };
+                    answerContainer.appendChild(button);
+                });
+                answerContainer.classList.add('visible');
+            });
+        }
+        
+        function hideGameUI() {
+            questionCounter.classList.add('fading-out');
+            exitButton.classList.add('fading-out');
+        }
+        
+        function postJumpscareSequence() {
+            logState('Starting post-jumpscare sequence');
+            gameState = 'PAUSED';
+            surveyScreen.classList.remove('hidden');
+            answerContainer.innerHTML = '';
+            answerContainer.classList.remove('visible');
+
+            typewriter("Did that scare you?", questionContainer, () => {
+                currentTimeoutId = setTimeout(() => {
+                    typewriter("Maybe it's there with you right now.", questionContainer, () => {
+                        currentTimeoutId = setTimeout(() => {
+                            showEndingWrapper(goodEndingSequence);
+                        }, 4000);
+                    });
+                }, 3000);
+            });
+        }
+        
+        function triggerJumpscare(isBadEnding) {
+            logState(`Triggering jumpscare. Bad Ending: ${isBadEnding}`);
+            gameState = 'JUMPSCARE';
+            hideGameUI();
+            
+            currentTimeoutId = setTimeout(() => {
+                surveyScreen.classList.add('hidden');
+
+                if (jumpscareToggle.checked) {
+                    jumpscareContainer.classList.add('active');
+                    document.body.classList.add('jumpscare-active');
+                    playSound(jumpscareSound);
+                    
+                    const soundDuration = 5000;
+                    jumpscareImage.style.setProperty('--fade-delay', `${(soundDuration / 1000) - 0.5}s`);
+                    jumpscareImage.classList.add('jumpscare-image-fadeout');
+
+                    setTimeout(() => {
+                        logState('Jumpscare visual effect finished.');
+                        document.body.classList.remove('jumpscare-active');
+                        jumpscareContainer.classList.remove('active');
+                        jumpscareImage.classList.remove('jumpscare-image-fadeout');
+                        if (isBadEnding) {
+                            showEndingWrapper(badEndingSequence);
+                        } else {
+                            postJumpscareSequence();
+                        }
+                    }, soundDuration);
+
+                } else {
+                    surveyScreen.classList.remove('hidden');
+                    questionContainer.innerHTML = "*Jumpscare Plays*";
+                    answerContainer.innerHTML = "";
+                    currentTimeoutId = setTimeout(() => {
+                         if (isBadEnding) showEndingWrapper(badEndingSequence);
+                         else postJumpscareSequence();
+                    }, 2000);
+                }
+            }, 100);
+        }
+        
+        function showCredits(onComplete) {
+            logState('Showing credits');
+            gameState = 'CREDITS';
+            endingScreen.classList.add('hidden');
+            creditsScreen.classList.remove('hidden');
+            creditsScrollContainer.innerHTML = '';
+            creditsScrollContainer.style.animation = 'none';
+            creditsScrollContainer.offsetHeight; 
+            creditsScrollContainer.style.animation = ''; 
+
+            const mainCredits = ["Maddie", "Gemini AI", "The Surveyor"];
+            mainCredits.forEach(name => {
+                const p = document.createElement('p');
+                p.textContent = name;
+                creditsScrollContainer.appendChild(p);
+            });
+            
+            const space = document.createElement('p');
+            space.innerHTML = '&nbsp;';
+            creditsScrollContainer.appendChild(space.cloneNode(true));
+
+            let glitchInterval = setInterval(() => {
+                let glitchText = '';
+                for (let i = 0; i < 20; i++) {
+                    glitchText += String.fromCharCode(Math.random() * (126 - 33) + 33);
+                }
+                const p = document.createElement('p');
+                p.textContent = glitchText;
+                creditsScrollContainer.appendChild(p);
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(glitchInterval);
+                const finalP = document.createElement('p');
+                finalP.id = "final-credit";
+                creditsScrollContainer.appendChild(finalP);
+            }, 18000);
+            
+            creditsScrollContainer.addEventListener('animationend', () => {
+                creditsScreen.classList.add('hidden');
+                surveyScreen.classList.remove('hidden');
+                questionContainer.innerHTML = '';
+                answerContainer.innerHTML = '';
+                typewriter("... and YOU", questionContainer, () => {
+                    setTimeout(() => {
+                        surveyScreen.classList.add('hidden');
+                        onComplete();
+                    }, 2000);
+                }, 'var(--primary-color)', 500);
+            });
+
+            creditsScrollContainer.style.animation = 'scroll-credits 20s linear forwards';
+        }
+        
+        function showEndingWrapper(endingFunction) {
+            const endingId = endingFunction.name;
+            endingFunction(); 
+
+            playAgainButton.onclick = () => {
+                playSound(clickSound);
+                if (!creditsHaveBeenShownThisSession) {
+                    creditsHaveBeenShownThisSession = true;
+                    endingScreen.classList.add('hidden');
+                    showCredits(() => {
+                        resetGame(false);
+                    });
+                } else {
+                    resetGame(false);
+                }
+            };
+        }
+        
+        function showEnding(title, subtitle, color, isParanoid = false) {
+            logState(`Showing ending: ${title}`);
+            gameState = 'ENDING';
+            playSound(endingSound);
+            
+            const screens = [consentScreen, introScreen, titleScreen, surveyScreen, pongContainer, creditsScreen];
+            screens.forEach(s => s.classList.add('hidden'));
+            
+            endingScreen.classList.remove('hidden');
+            
+            eyeBackground.innerHTML = ''; 
+            endingTitle.innerHTML = ''; 
+            endingTitle.classList.remove('paranoid');
+            
+            if (isParanoid) {
+                endingTitle.classList.add('paranoid');
+                populateParanoidBackground();
+                title.split('').forEach(char => {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    if (char !== ' ') {
+                        span.style.animationDelay = `${Math.random() * 4}s`;
+                    }
+                    endingTitle.appendChild(span);
+                });
+            } else {
+                endingTitle.textContent = title;
+            }
+            
+            endingTitle.style.color = color;
+            endingSubtitle.textContent = subtitle;
+            
+            playAgainButton.onclick = () => {
+                playSound(clickSound);
+                resetGame(isParanoid);
+            };
+        }
+        
+        function populateParanoidBackground() {
+            const placedEyes = [];
+            const container = eyeBackground;
+            const eyeSize = 100;
+            let attempts = 0;
+
+            for (let i = 0; i < 50 && attempts < 500; i++) {
+                let x = Math.random() * (container.clientWidth - eyeSize);
+                let y = Math.random() * (container.clientHeight - eyeSize);
+                
+                let newEyeRect = { left: x, top: y, right: x + eyeSize, bottom: y + eyeSize };
+                let isOverlapping = false;
+
+                for (const placed of placedEyes) {
+                    if (newEyeRect.left < placed.right && newEyeRect.right > placed.left &&
+                        newEyeRect.top < placed.bottom && newEyeRect.bottom > placed.top) {
+                        isOverlapping = true;
+                        break;
+                    }
+                }
+
+                if (!isOverlapping) {
+                    const eye = document.createElement('img');
+                    eye.src = 'https://github.com/Bapoooossssaaaa/dsdsadsa/blob/main/scaryeyeAAAAAAAAAA.png?raw=true';
+                    eye.classList.add('paranoid-eye');
+                    eye.style.left = `${x}px`;
+                    eye.style.top = `${y}px`;
+                    eye.style.width = `${eyeSize}px`;
+                    eye.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    eye.style.setProperty('--max-opacity', Math.random() * 0.3 + 0.1);
+                    eye.style.animationDuration = `${Math.random() * 10 + 8}s`;
+                    eye.style.animationDelay = `${Math.random() * 8}s`;
+                    container.appendChild(eye);
+                    placedEyes.push(newEyeRect);
+                }
+                attempts++;
+            }
+        }
+
+        function goodEndingSequence() { showEndingWrapper(() => showEnding("The End", `You found ending 1 of ${totalEndings}`, 'var(--primary-color)')); }
+        function badEndingSequence() { showEndingWrapper(() => showEnding("The Bad Ending", `You found ending 2 of ${totalEndings}`, 'var(--danger-color)')); }
+        function pongEndingSequence() { showEndingWrapper(() => showEnding("The Pong Ending", `You found ending 3 of ${totalEndings}`, 'var(--primary-color)')); }
+        function paranoidEndingSequence() {
+            showEnding("THE PARANOID ENDING", `You found ending 4 of ${totalEndings}`, 'var(--primary-color)', true);
+        }
+
+        function handleDebugCode(e) {
+            currentCodeInput += e.key.toUpperCase();
+            if (currentCodeInput.length > debugCode.length) currentCodeInput = currentCodeInput.slice(1);
+            if (currentCodeInput === debugCode) {
+                debugMenu.classList.toggle('hidden');
+                currentCodeInput = "";
+            }
+        }
+        
+        function resetGame(fromParanoid = false) {
+            logState(`Resetting game. From Paranoid: ${fromParanoid}`);
+            currentQuestionIndex = 0;
+            exitAttempts = 0;
+            surveyAnswers = {};
+            
+            endingScreen.classList.add('hidden');
+            questionCounter.classList.remove('fading-out');
+            exitButton.classList.remove('fading-out');
+            
+            if (fromParanoid) {
+                gameState = 'CONSENT';
+                consentScreen.classList.remove('hidden');
+                consentScreen.style.animation = '';
+                consentCheckbox.checked = false;
+                consentContinueButton.disabled = true;
+            } else {
+                gameState = 'TITLE';
+                titleScreen.classList.remove('hidden');
+            }
+        }
+
+        async function fetchLocation() {
+            logState('Fetching user location...');
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                userLocation.city = data.city || "your city";
+                userLocation.region = data.region || "your area";
+                userLocation.isUS = data.country_code === 'US';
+                logState(`Location found: ${userLocation.city}, ${userLocation.region}. Is US: ${userLocation.isUS}`);
+            } catch (error) {
+                logState('Could not fetch location, using defaults.');
+                console.error('Geolocation fetch error:', error);
+            }
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('load', fetchLocation);
+        
+        consentCheckbox.addEventListener('change', () => {
+            consentContinueButton.disabled = !consentCheckbox.checked;
+        });
+        
+        consentContinueButton.addEventListener('click', () => {
+            playSound(clickSound);
+            consentScreen.style.animation = 'fadeInOut 1s forwards reverse';
+            setTimeout(() => {
+                introScreen.classList.remove('hidden');
+                introScreen.style.animation = 'fadeInOut 5s forwards';
+            }, 1000);
+        });
+        
+        consentQuitButton.addEventListener('click', () => {
+            playSound(clickSound);
+            paranoidEndingSequence();
+        });
+
+        introScreen.addEventListener('animationend', () => {
+            introScreen.classList.add('hidden');
+            titleScreen.classList.remove('hidden');
+            logState('Intro finished, now on TITLE screen');
+            gameState = 'TITLE';
+        });
+
+        startButton.addEventListener('click', () => {
+            playSound(clickSound);
+            document.documentElement.requestFullscreen().catch(err => {});
+            titleScreen.classList.add('hidden');
+            surveyScreen.classList.remove('hidden');
+            logState('Starting Survey');
+            gameState = 'SURVEY';
+            displayQuestion();
+        });
+        
+        pongStartButton.addEventListener('click', () => {
+            playSound(clickSound);
+            pongStartButton.classList.add('hidden');
+            logState('Starting Pong Game');
+            gameState = 'PONG_PLAYING';
+            pongGameLoop();
+        });
+        
+        pongCanvas.addEventListener('mousemove', (evt) => {
+            if (gameState !== 'PONG_PLAYING') return;
+            let rect = pongCanvas.getBoundingClientRect();
+            player.y = evt.clientY - rect.top - player.height / 2;
+        });
+        
+        window.addEventListener('keydown', (e) => { if (e.key in keys) keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { if (e.key in keys) keys[e.key] = false; handleDebugCode(e); });
+
+        exitButton.addEventListener('click', () => {
+            if (gameState !== 'SURVEY') return;
+            clearTimeout(currentTimeoutId);
+            isTyping = false;
+            gameState = 'PAUSED';
+            logState('Exit button clicked, pausing survey.');
+            playSound(clickSound);
+            exitAttempts++;
+            
+            const handleExitAttempt = (message) => {
+                questionContainer.innerHTML = '';
+                answerContainer.innerHTML = '';
+                answerContainer.classList.remove('visible');
+
+                typewriter(message, questionContainer, () => {
+                    currentTimeoutId = setTimeout(() => {
+                        logState('Resuming survey after exit attempt.');
+                        gameState = 'SURVEY';
+                        displayQuestion();
+                    }, 1000);
+                }, 'var(--danger-color)');
+            };
+
+            switch(exitAttempts) {
+                case 1: handleExitAttempt("The survey cannot be exited at this time."); break;
+                case 2: handleExitAttempt("We insist you continue."); break;
+                case 3:
+                    questionContainer.innerHTML = '';
+                    answerContainer.innerHTML = '';
+                    answerContainer.classList.remove('visible');
+                    typewriter("Fine.", questionContainer, () => { triggerJumpscare(true); }, 'var(--danger-color)');
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
